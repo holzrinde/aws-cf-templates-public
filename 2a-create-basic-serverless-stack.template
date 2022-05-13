@@ -1,0 +1,68 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: Resources for Blogging content
+
+Parameters:
+  environment:
+    Type: String
+    AllowedValues:
+      - t
+      - p
+  DevelopmentName:
+    Type: String
+    Default: Blogging
+  StackOwner:
+    Type: String
+    Default: 
+Metadata:
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+      - Label:
+          default:
+        Parameters:
+          - environment
+          - DevelopmentName
+          - StackOwner
+Resources:
+  S3BucketLogs:
+    DeletionPolicy: Delete
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub "${AWS::StackName}-${AWS::AccountId}-${AWS::Region}-logs"
+      VersioningConfiguration:
+        Status: Enabled
+      AccessControl: LogDeliveryWrite
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: 'AES256'
+      LifecycleConfiguration:
+        Rules:
+          - Id: ExpireAfter90Days
+            Status: Enabled
+            ExpirationInDays: 90
+            NoncurrentVersionExpirationInDays: 90
+      Tags:
+        - Key: application
+          Value: shared
+  # Taken from https://github.com/awslabs/aws-cloudformation-templates/blob/master/aws/solutions/S3AccessLogs/templates/S3AccessLogs.cfn.yaml
+  BucketPolicyS3BucketLogs:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref S3BucketLogs
+      PolicyDocument:
+        Statement:
+          - Sid: DenyNonSSLRequests
+            Effect: Deny
+            Action: s3:*
+            Resource:
+              - !Sub arn:${AWS::Partition}:s3:::${S3BucketLogs}
+              - !Sub arn:${AWS::Partition}:s3:::${S3BucketLogs}/*
+            Principal: '*'
+            Condition:
+              Bool:
+                aws:SecureTransport: false
