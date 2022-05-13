@@ -12,7 +12,7 @@ Parameters:
     Default: Blogging
   StackOwner:
     Type: String
-    Default: 
+    Default: yourname
 Metadata:
   AWS::CloudFormation::Interface:
     ParameterGroups:
