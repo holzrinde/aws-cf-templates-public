@@ -17,7 +17,7 @@ Metadata:
   AWS::CloudFormation::Interface:
     ParameterGroups:
       - Label:
-          default:
+          default: no need to change these settings once set up
         Parameters:
           - environment
           - DevelopmentName
